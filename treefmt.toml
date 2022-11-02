@@ -1,0 +1,11 @@
+# One CLI to format the code tree - https://github.com/numtide/treefmt
+
+[formatter.web]
+# Formatter to run
+command = './node_modules/.bin/prettier'
+# Command-line arguments for the command
+options = ["--write"]
+# Glob pattern of files to include
+includes = [ "*.js", "*.jsx", "*.ts", "*.tsx", "*.json", "*.css", "*.scss", "*.md",]
+# Glob patterns of files to exclude
+excludes = ["package-lock.json"]
