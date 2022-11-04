@@ -12,61 +12,68 @@ const CAPTURE_OPTIONS = {
   video: { facingMode: "environment" },
 };
 
-/*
- *`returnComponent` takes care of  wrapping the component on a React.forwardRef component if it contains a ref property.
- *
- *For more info on ref forwarding, read: https://reactjs.org/docs/forwarding-refs.html .
- */
-const returnComponent = ({ component, className, ...rest }) => (
-  <component className={className} {...rest} />
-);
-
-const Wrapper2 = (props) =>
-  returnComponent({ component: <div />, className: "Wrapper", ...props });
-
-const Wrapper = (props) => <div className="Wrapper" {...props} />;
-//const Container = (props) => React.forwardRef((props, ref) => <div className="Container" ref={ref} {...props} />);
-
-const Container = React.forwardRef((props, ref) => (
-  <div ref={ref} className="Container" {...props} />
-));
-
-//const Canvas = (props) => <canvas className="Canvas" {...props} />;
-const Canvas = React.forwardRef((props, ref) => (
-  <canvas ref={ref} className="Canvas" {...props} />
-));
-//const Video = (props) => <video className="Video" {...props} />;
-const Video = React.forwardRef((props, ref) => (
-  <video ref={ref} className="Video" {...props} />
-));
-const Overlay = (props) => <div className="Overlay" {...props} />;
-const Flash = (props) => <div className="Flash" {...props} />;
-const Button = (props) => <button className="Button" {...props} />;
-
 // Utilities
-/* setIfExists allows receiving a transformed value if a property exists in an object.
+/* `returnComponent` and `returnComponentWithRef` help creating semantic components to make the layout more readable.
  *
- * With this function, now we can type
+ * With this function, the following expression
+ *		`const Wrapper = (props) => <div className="Wrapper" {...props} />;`
+ * becomes
+ *		`const Wrapper = returnComponent("div", "Wrapper");`
+ *
+ * `returnComponentWithRef` creates a component that allows a ref property.
+ * For more info on ref forwarding, read: https://reactjs.org/docs/forwarding-refs.html .
+ */
+const returnComponent = (type, className) => {
+  return ({ children, ...rest }) =>
+    React.createElement(type, { className: className, ...rest }, children);
+};
+
+const returnComponentWithRef = (type, className) => {
+  return React.forwardRef(({ children, ...rest }, ref) =>
+    React.createElement(
+      type,
+      { ref: ref, className: className, ...rest },
+      children
+    )
+  );
+};
+
+/* `setIfExists`s allows receiving a transformed value if a property exists in an object.
+ *
+ * With this function, the following expression
  *     setIfExists(videoRef.current, "videoWidth", (value)=>`${value}px`)
- * instead of
+ * becomes
  *     videoRef.current && videoRef.current.videoWidth && `${videoRef.current.videoWidth}px`
  */
 const setIfExists = (object, property, transform) => {
-  if (object == undefined) return undefined;
+  if (object === undefined) return undefined;
   else {
     const child = object[property];
-    if (child != undefined) {
+    if (child !== undefined) {
       return transform(child);
     }
   }
   return undefined;
 };
 
+// Semantic components
+const Button = returnComponent("button", "Button");
+const Flash = returnComponent("div", "Flash");
+const Overlay = returnComponent("div", "Overlay");
+const Wrapper = returnComponent("div", "Wrapper");
+
+// Semantic components with ref
+const Canvas = returnComponentWithRef("canvas", "Canvas");
+const Container = returnComponentWithRef("div", "Container");
+const Video = returnComponentWithRef("video", "Video");
+
+//////////////////////////////////////////////////////////////////////
+// Camera component
 export const Camera = ({ onCapture, onClear }) => {
   // Set references
   const canvasRef = useRef();
   const videoRef = useRef();
-  const { width, height, ref: resizeRef } = useResizeDetector();
+  const { width, ref: resizeRef } = useResizeDetector();
 
   // Set states
   const [container, setContainer] = useState({ width: 100, height: 300 });
@@ -92,7 +99,7 @@ export const Camera = ({ onCapture, onClear }) => {
         height: Math.round(width / aspectRatio),
       });
     }
-  }, [width]);
+  }, [aspectRatio, width]);
 
   // Update video reference
   if (mediaStream && videoRef.current && !videoRef.current.srcObject) {

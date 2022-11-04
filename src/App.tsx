@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useState } from "react";
 
 import { Camera } from "./Camera";
 
@@ -21,6 +21,7 @@ function App() {
           <h2>Preview</h2>
           <img
             className="Preview"
+            alt="Screeshot preview"
             src={cardImage && URL.createObjectURL(cardImage)}
           />
         </div>
