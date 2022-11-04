@@ -6,9 +6,9 @@
       config.projectRoot = ./.;
       source = ./.;
       settings = [
-              {
-                subsystemInfo.nodejs = 18;
-              }
-            ];
+        {
+          subsystemInfo.nodejs = 18;
+        }
+      ];
     };
 }

@@ -12,6 +12,7 @@ export function useUserMedia(requestedMedia) {
         setMediaStream(stream);
       } catch (err) {
         // Handle the error
+        console.log(err);
       }
     }
 

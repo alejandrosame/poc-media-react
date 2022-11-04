@@ -110,9 +110,15 @@ export const Camera = ({ onCapture, onClear }) => {
   }, [aspectRatio, width]);
 
   // Update video reference
-  if (mediaStream && videoRef.current && !videoRef.current.srcObject) {
-    videoRef.current.srcObject = mediaStream;
-  }
+  useEffect(() => {
+    if (
+      mediaStream &&
+      videoRef.current &&
+      !videoRef.current.checkVisibility()
+    ) {
+      videoRef.current.srcObject = mediaStream;
+    }
+  }, [mediaStream]);
 
   // Callbacks
   const handleCanPlay = () => {
@@ -162,6 +168,7 @@ export const Camera = ({ onCapture, onClear }) => {
                     }
                   }}}
   */
+
   return (
     <Wrapper>
       <Container
