@@ -24,18 +24,26 @@ const CAPTURE_OPTIONS = {
  * For more info on ref forwarding, read: https://reactjs.org/docs/forwarding-refs.html .
  */
 const returnComponent = (type, className) => {
-  return ({ children, ...rest }) =>
+  const component = ({ children, ...rest }) =>
     React.createElement(type, { className: className, ...rest }, children);
+
+  component.displayName = className;
+
+  return component;
 };
 
 const returnComponentWithRef = (type, className) => {
-  return React.forwardRef(({ children, ...rest }, ref) =>
+  const component = React.forwardRef(({ children, ...rest }, ref) =>
     React.createElement(
       type,
       { ref: ref, className: className, ...rest },
       children
     )
   );
+
+  component.displayName = className;
+
+  return component;
 };
 
 /* `setIfExists`s allows receiving a transformed value if a property exists in an object.
