@@ -159,16 +159,6 @@ export const Camera = ({ onCapture, onClear }) => {
     return null;
   }
 
-  /*
-  style={${({ flash }) => {
-                    if (flash) {
-                      return css`
-                        animation: ${flashAnimation} 750ms ease-out;
-                      `;
-                    }
-                  }}}
-  */
-
   return (
     <Wrapper>
       <Container
@@ -208,10 +198,7 @@ export const Camera = ({ onCapture, onClear }) => {
           height={container.height}
         />
 
-        <Flash
-          flash={isFlashing.toString()}
-          onAnimationEnd={() => setIsFlashing(false)}
-        />
+        {isFlashing && <Flash onAnimationEnd={() => setIsFlashing(false)} />}
       </Container>
 
       {isVideoPlaying && (
