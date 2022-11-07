@@ -23,8 +23,8 @@ const CAPTURE_OPTIONS = {
  * `returnComponentWithRef` creates a component that allows a ref property.
  * For more info on ref forwarding, read: https://reactjs.org/docs/forwarding-refs.html .
  */
-const returnComponent = (type, className) => {
-  const component = ({ children, ...rest }) =>
+const returnComponent = (type: any, className: any) => {
+  const component = ({ children, ...rest }: any) =>
     React.createElement(type, { className: className, ...rest }, children);
 
   component.displayName = className;
@@ -32,8 +32,8 @@ const returnComponent = (type, className) => {
   return component;
 };
 
-const returnComponentWithRef = (type, className) => {
-  const component = React.forwardRef(({ children, ...rest }, ref) =>
+const returnComponentWithRef = (type: any, className: any) => {
+  const component = React.forwardRef(({ children, ...rest }: any, ref: any) =>
     React.createElement(
       type,
       { ref: ref, className: className, ...rest },
@@ -53,7 +53,7 @@ const returnComponentWithRef = (type, className) => {
  * becomes
  *     videoRef.current && videoRef.current.videoWidth && `${videoRef.current.videoWidth}px`
  */
-const setIfExists = (object, property, transform) => {
+const setIfExists = (object: any, property: any, transform: any) => {
   if (object === undefined) return undefined;
   else {
     const child = object[property];
@@ -77,10 +77,10 @@ const Video = returnComponentWithRef("video", "Video");
 
 //////////////////////////////////////////////////////////////////////
 // Camera component
-export const Camera = ({ onCapture, onClear }) => {
+export const Camera = ({ onCapture, onClear }: any) => {
   // Set references
-  const canvasRef = useRef();
-  const videoRef = useRef();
+  const canvasRef: any = useRef();
+  const videoRef: any = useRef();
   const { width, ref: resizeRef } = useResizeDetector();
 
   // Set states
@@ -142,7 +142,7 @@ export const Camera = ({ onCapture, onClear }) => {
       container.height
     );
 
-    canvasRef.current.toBlob((blob) => onCapture(blob), "image/jpeg", 1);
+    canvasRef.current.toBlob((blob: any) => onCapture(blob), "image/jpeg", 1);
     setIsCanvasEmpty(false);
     setIsFlashing(true);
   };
@@ -168,12 +168,12 @@ export const Camera = ({ onCapture, onClear }) => {
           maxWidth: setIfExists(
             videoRef.current,
             "videoWidth",
-            (value) => `${value}px`
+            (value: any) => `${value}px`
           ),
           maxHeight: setIfExists(
             videoRef.current,
             "videoHeight",
-            (value) => `${value}px`
+            (value: any) => `${value}px`
           ),
         }}
       >
