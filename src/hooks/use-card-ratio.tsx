@@ -5,10 +5,10 @@ import { useState, useCallback } from "react";
  * width (regardless of the resolution of the camera). This is achieved by calculating a ratio
  * that is always >= 1 by dividing by the largest dimension.
  **/
-export function useCardRatio(initialParams) {
+export function useCardRatio(initialParams: any) {
   const [aspectRatio, setAspectRatio] = useState(initialParams);
 
-  const calculateRatio = useCallback((height, width) => {
+  const calculateRatio = useCallback((height: number, width: number) => {
     if (height && width) {
       const isLandscape = height <= width;
       const ratio = isLandscape ? width / height : height / width;

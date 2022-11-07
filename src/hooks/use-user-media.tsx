@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 
-export function useUserMedia(requestedMedia) {
-  const [mediaStream, setMediaStream] = useState(null);
+export function useUserMedia(requestedMedia: any) {
+  const [mediaStream, setMediaStream] = useState<any>(null);
 
   useEffect(() => {
     async function enableVideoStream() {
@@ -20,7 +20,7 @@ export function useUserMedia(requestedMedia) {
       enableVideoStream();
     } else {
       return function cleanup() {
-        mediaStream.getTracks().forEach((track) => {
+        mediaStream.getTracks().forEach((track: any) => {
           track.stop();
         });
       };
