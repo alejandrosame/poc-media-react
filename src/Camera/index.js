@@ -175,18 +175,16 @@ export const Camera = ({ onCapture, onClear }) => {
         ref={resizeRef}
         style={{
           height: `${container.height}px`,
-          maxWidth: () =>
-            setIfExists(
-              videoRef.current,
-              "videoWidth",
-              (value) => `${value}px`
-            ),
-          maxHeight: () =>
-            setIfExists(
-              videoRef.current,
-              "videoHeight",
-              (value) => `${value}px`
-            ),
+          maxWidth: setIfExists(
+            videoRef.current,
+            "videoWidth",
+            (value) => `${value}px`
+          ),
+          maxHeight: setIfExists(
+            videoRef.current,
+            "videoHeight",
+            (value) => `${value}px`
+          ),
         }}
       >
         <Video
