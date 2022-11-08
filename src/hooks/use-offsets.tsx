@@ -5,8 +5,8 @@ import { useState, useEffect } from "react";
  * to center the container in the middle of the video.
  **/
 export function useOffsets(
-  vWidth: number,
-  vHeight: number,
+  vWidth: number | undefined,
+  vHeight: number | undefined,
   cWidth: number,
   cHeight: number
 ) {

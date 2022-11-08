@@ -1,15 +1,34 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useResizeDetector } from "react-resize-detector";
 
-import { useUserMedia } from "../hooks/use-user-media";
-import { useCardRatio } from "../hooks/use-card-ratio";
+import { UserMediaRequest, useUserMedia } from "../hooks/use-user-media";
 import { useOffsets } from "../hooks/use-offsets";
 
+import { ReactProps } from "./types";
 import "./index.css";
 
-const CAPTURE_OPTIONS = {
+const ASPECT_RATIO = 1.586;
+
+const CAPTURE_OPTIONS: UserMediaRequest = {
   audio: false,
   video: { facingMode: "environment" },
+};
+
+// Types
+interface ExtendedHTMLVideoElement extends HTMLVideoElement {
+  checkVisibility: () => boolean;
+}
+
+type PossibleRefs = ExtendedHTMLVideoElement | HTMLCanvasElement;
+
+type Container = {
+  width: number;
+  height: number;
+};
+
+type CameraCallbacks = {
+  onCapture: (blob: Blob | null) => void;
+  onClear: () => void;
 };
 
 // Utilities
@@ -23,8 +42,11 @@ const CAPTURE_OPTIONS = {
  * `returnComponentWithRef` creates a component that allows a ref property.
  * For more info on ref forwarding, read: https://reactjs.org/docs/forwarding-refs.html .
  */
-const returnComponent = (type: any, className: any) => {
-  const component = ({ children, ...rest }: any) =>
+const returnComponent = (
+  type: string,
+  className: string
+): React.FunctionComponent<ReactProps> => {
+  const component = ({ children, ...rest }: ReactProps) =>
     React.createElement(type, { className: className, ...rest }, children);
 
   component.displayName = className;
@@ -32,36 +54,19 @@ const returnComponent = (type: any, className: any) => {
   return component;
 };
 
-const returnComponentWithRef = (type: any, className: any) => {
-  const component = React.forwardRef(({ children, ...rest }: any, ref: any) =>
-    React.createElement(
-      type,
-      { ref: ref, className: className, ...rest },
-      children
-    )
+const returnComponentWithRef = (type: string, className: string) => {
+  const component = React.forwardRef<PossibleRefs, ReactProps>(
+    ({ children, ...rest }: ReactProps, ref) =>
+      React.createElement(
+        type,
+        { ref: ref, className: className, ...rest },
+        children
+      )
   );
 
   component.displayName = className;
 
   return component;
-};
-
-/* `setIfExists`s allows receiving a transformed value if a property exists in an object.
- *
- * With this function, the following expression
- *     setIfExists(videoRef.current, "videoWidth", (value)=>`${value}px`)
- * becomes
- *     videoRef.current && videoRef.current.videoWidth && `${videoRef.current.videoWidth}px`
- */
-const setIfExists = (object: any, property: any, transform: any) => {
-  if (object === undefined) return undefined;
-  else {
-    const child = object[property];
-    if (child !== undefined) {
-      return transform(child);
-    }
-  }
-  return undefined;
 };
 
 // Semantic components
@@ -75,26 +80,35 @@ const Canvas = returnComponentWithRef("canvas", "Canvas");
 const Container = returnComponentWithRef("div", "Container");
 const Video = returnComponentWithRef("video", "Video");
 
+const toPxString = (value: number | undefined): string | undefined => {
+  if (value) return `${value}px`;
+  return undefined;
+};
+
 //////////////////////////////////////////////////////////////////////
 // Camera component
-export const Camera = ({ onCapture, onClear }: any) => {
+export const Camera = ({ onCapture, onClear }: CameraCallbacks) => {
   // Set references
-  const canvasRef: any = useRef();
-  const videoRef: any = useRef();
+  const canvasRef = useRef<null | HTMLCanvasElement>(null);
+  const videoRef = useRef<null | ExtendedHTMLVideoElement>(null);
+
   const { width, ref: resizeRef } = useResizeDetector();
 
   // Set states
-  const [container, setContainer] = useState({ width: 100, height: 300 });
-  const [isVideoPlaying, setIsVideoPlaying] = useState(false);
-  const [isCanvasEmpty, setIsCanvasEmpty] = useState(true);
-  const [isFlashing, setIsFlashing] = useState(false);
+  const [container, setContainer] = useState<Container>({
+    width: 100,
+    height: 300,
+  });
+  const [isVideoPlaying, setIsVideoPlaying] = useState<boolean>(false);
+  const [isCanvasEmpty, setIsCanvasEmpty] = useState<boolean>(true);
+  const [isFlashing, setIsFlashing] = useState<boolean>(false);
 
   // Set extra utility variables
   const mediaStream = useUserMedia(CAPTURE_OPTIONS);
-  const [aspectRatio, calculateRatio] = useCardRatio(1.586);
+
   const offsets = useOffsets(
-    videoRef.current && videoRef.current.videoWidth,
-    videoRef.current && videoRef.current.videoHeight,
+    videoRef.current?.videoWidth,
+    videoRef.current?.videoHeight,
     container.width,
     container.height
   );
@@ -104,10 +118,10 @@ export const Camera = ({ onCapture, onClear }: any) => {
     if (width) {
       setContainer({
         width: width,
-        height: Math.round(width / aspectRatio),
+        height: Math.round(width / ASPECT_RATIO),
       });
     }
-  }, [aspectRatio, width]);
+  }, [width]);
 
   // Update video reference
   useEffect(() => {
@@ -122,13 +136,17 @@ export const Camera = ({ onCapture, onClear }: any) => {
 
   // Callbacks
   const handleCanPlay = () => {
-    calculateRatio(videoRef.current.videoHeight, videoRef.current.videoWidth);
     setIsVideoPlaying(true);
-    videoRef.current.play();
+    void videoRef.current?.play(); // TODO: handle error
   };
 
   const handleCapture = () => {
+    if (videoRef.current === null) return;
+    if (canvasRef.current === null) return;
+
     const context = canvasRef.current.getContext("2d");
+
+    if (!context) return;
 
     context.drawImage(
       videoRef.current,
@@ -142,14 +160,20 @@ export const Camera = ({ onCapture, onClear }: any) => {
       container.height
     );
 
-    canvasRef.current.toBlob((blob: any) => onCapture(blob), "image/jpeg", 1);
+    canvasRef.current.toBlob(
+      (blob: Blob | null) => onCapture(blob),
+      "image/jpeg",
+      1
+    );
     setIsCanvasEmpty(false);
     setIsFlashing(true);
   };
 
   const handleClear = () => {
+    if (canvasRef.current === null) return;
+
     const context = canvasRef.current.getContext("2d");
-    context.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+    context?.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
     setIsCanvasEmpty(true);
     onClear();
   };
@@ -165,16 +189,8 @@ export const Camera = ({ onCapture, onClear }: any) => {
         ref={resizeRef}
         style={{
           height: `${container.height}px`,
-          maxWidth: setIfExists(
-            videoRef.current,
-            "videoWidth",
-            (value: any) => `${value}px`
-          ),
-          maxHeight: setIfExists(
-            videoRef.current,
-            "videoHeight",
-            (value: any) => `${value}px`
-          ),
+          maxWidth: toPxString(videoRef.current?.videoWidth),
+          maxHeight: toPxString(videoRef.current?.videoHeight),
         }}
       >
         <Video

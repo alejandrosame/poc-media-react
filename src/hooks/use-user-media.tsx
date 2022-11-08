@@ -1,7 +1,22 @@
 import { useState, useEffect } from "react";
 
-export function useUserMedia(requestedMedia: any) {
-  const [mediaStream, setMediaStream] = useState<any>(null);
+export interface UserMediaVideoOptions {
+  facingMode?: string;
+}
+
+export interface UserMediaRequest {
+  audio?: boolean;
+  video?: boolean | UserMediaVideoOptions;
+}
+
+interface MediaStreamTrack {
+  stop: () => void;
+}
+
+export function useUserMedia(
+  requestedMedia: UserMediaRequest
+): MediaStream | null {
+  const [mediaStream, setMediaStream] = useState<MediaStream | null>(null);
 
   useEffect(() => {
     async function enableVideoStream() {
@@ -17,10 +32,10 @@ export function useUserMedia(requestedMedia: any) {
     }
 
     if (!mediaStream) {
-      enableVideoStream();
+      void enableVideoStream();
     } else {
       return function cleanup() {
-        mediaStream.getTracks().forEach((track: any) => {
+        mediaStream.getTracks().forEach((track: MediaStreamTrack) => {
           track.stop();
         });
       };

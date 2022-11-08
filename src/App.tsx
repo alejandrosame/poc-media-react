@@ -6,14 +6,14 @@ import "./App.css";
 
 function App() {
   const [isCameraOpen, setIsCameraOpen] = useState(false);
-  const [cardImage, setCardImage] = useState();
+  const [cardImage, setCardImage] = useState<Blob | null>(null);
 
   return (
     <main className="App">
       {isCameraOpen && (
         <Camera
-          onCapture={(blob: any) => setCardImage(blob)}
-          onClear={() => setCardImage(undefined)}
+          onCapture={(blob: Blob | null) => setCardImage(blob)}
+          onClear={() => setCardImage(null)}
         />
       )}
       {cardImage && (
@@ -31,7 +31,7 @@ function App() {
         <button
           onClick={() => {
             setIsCameraOpen(false);
-            setCardImage(undefined);
+            setCardImage(null);
           }}
         >
           Close Camera
